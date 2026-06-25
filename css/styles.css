@@ -267,6 +267,17 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .preview ul { margin: 0.4em 0; padding-left: 20px; }
 .preview blockquote { margin: 0.5em 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--paper-accent); color: #555; font-style: italic; }
 
+/* Chat transcript (Ticket) — bubbles alternate sides */
+.preview .msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 80%; margin: 12px 0; }
+.preview .msg-out { margin-left: auto; align-items: flex-end; }
+.preview .msg-who { font-family: var(--ui); font-size: 11px; color: #6b7280; margin: 0 4px 4px; }
+.preview .bubble {
+  font-family: var(--ui); font-size: 13px; line-height: 1.45;
+  padding: 8px 12px; margin-top: 4px; border-radius: 13px; border-bottom-left-radius: 4px;
+  background: #e9ebef; color: #14181e;
+}
+.preview .msg-out .bubble { background: var(--paper-accent); color: #fff; border-bottom-left-radius: 13px; border-bottom-right-radius: 4px; }
+
 /* ---- Avatar / File cards -------------------------------------------------- */
 .avatar-wrap { flex: 1; display: flex; align-items: center; gap: 10px; padding: 2px 6px; }
 .avatar-img { width: 44px; height: 44px; border-radius: 50%; display: block; flex: 0 0 auto; }

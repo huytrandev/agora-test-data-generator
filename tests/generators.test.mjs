@@ -77,6 +77,25 @@ test('message marks its body as html', () => {
   assert.match(body[1], /<p>|<h4>/)
 })
 
+test('ticket exposes a chat conversation marked as html', () => {
+  const [fields] = runBatch('ticket', 1)
+  const labels = fields.map(([l]) => l)
+  assert.deepEqual(labels, ['Participant A', 'Participant B', 'Messages', 'Conversation'])
+  const convo = fields.find(([l]) => l === 'Conversation')
+  assert.equal(convo[2], 'html')
+  assert.match(convo[1], /msg-in|msg-out/)
+  assert.match(convo[1], /class="bubble"/)
+})
+
+test('ticket message count matches the rendered bubbles', () => {
+  for (const fields of runBatch('ticket', 30)) {
+    const convo = value(fields, 'Conversation')
+    const bubbles = (convo.match(/class="bubble"/g) || []).length
+    assert.equal(Number(value(fields, 'Messages')), bubbles)
+    assert.ok(bubbles >= 2, 'a conversation has at least two messages')
+  }
+})
+
 test('parent full names never repeat within a batch', () => {
   const fulls = runBatch('parent', 300, { len: 'normal' }).map((f) => value(f, 'Full name').toLowerCase())
   assert.equal(new Set(fulls).size, fulls.length)

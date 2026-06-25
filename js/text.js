@@ -76,3 +76,34 @@ export function richMessage(rng, len) {
   out.push(`<p><em>${sentence(rng, 12, 18)}</em></p>`)
   return out.join('\n')
 }
+
+// --- Chat / conversation transcript -----------------------------------------
+// Two parties replying back and forth. Text length controls how many alternating
+// turns; each turn is a burst of 1–3 consecutive messages, each of varying length.
+const CHAT_TURNS = { normal: [2, 3], long: [4, 6], stress: [8, 14] }
+
+function chatLine(rng) {
+  const r = rng.rnd()
+  if (r < 0.4) return cap(words(rng, rng.randInt(2, 6))) // short, chatty — no period
+  if (r < 0.8) return sentence(rng, 6, 12) // one sentence
+  return paras(rng, 2, 8, 14) // two sentences
+}
+
+export function chatThread(rng, len, whoA, whoB) {
+  const [lo, hi] = CHAT_TURNS[len] || CHAT_TURNS.normal
+  const turns = rng.randInt(lo, hi)
+  const parts = []
+  let count = 0
+  for (let t = 0; t < turns; t++) {
+    const fromA = t % 2 === 0
+    const who = fromA ? whoA : whoB
+    const dir = fromA ? 'in' : 'out'
+    const bubbles = []
+    for (let m = rng.randInt(1, 3); m > 0; m--) {
+      bubbles.push(`<div class="bubble">${chatLine(rng)}</div>`)
+      count++
+    }
+    parts.push(`<div class="msg msg-${dir}"><div class="msg-who">${who}</div>${bubbles.join('')}</div>`)
+  }
+  return { html: parts.join('\n'), count }
+}

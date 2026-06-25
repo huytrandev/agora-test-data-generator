@@ -4,7 +4,7 @@
 import * as P from './data.js'
 import { HTML_KIND, AVATAR_KIND } from './constants.js'
 import { createNameGenerator, chineseName } from './names.js'
-import { cap, words, sentence, paras, descText, titleText, richMessage } from './text.js'
+import { cap, words, sentence, paras, descText, titleText, richMessage, chatThread } from './text.js'
 
 const GENDERS = ['male', 'female']
 const DURATIONS = [60, 90, 120]
@@ -217,7 +217,21 @@ function message(ctx) {
   ]
 }
 
-export const GENERATORS = { parent, student, course, instance, class: klass, product, message }
+// A back-and-forth chat between two people, rendered as a bubble transcript.
+function ticket(ctx) {
+  const { rng } = ctx
+  const a = ctx.nameGen.next(rng.pick(GENDERS), 'normal')
+  const b = ctx.nameGen.next(rng.pick(GENDERS), 'normal')
+  const chat = chatThread(rng, ctx.len, a.first, b.first)
+  return [
+    ['Participant A', a.full],
+    ['Participant B', b.full],
+    ['Messages', String(chat.count)],
+    ['Conversation', chat.html, HTML_KIND],
+  ]
+}
+
+export const GENERATORS = { parent, student, course, instance, class: klass, product, message, ticket }
 
 export const TYPE_LABELS = {
   parent: 'Parent',
@@ -227,6 +241,7 @@ export const TYPE_LABELS = {
   class: 'Class',
   product: 'Product',
   message: 'Message',
+  ticket: 'Ticket',
 }
 
 /**
