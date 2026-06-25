@@ -96,6 +96,17 @@ test('ticket message count matches the rendered bubbles', () => {
   }
 })
 
+test('ticket honors an explicit message count', () => {
+  for (const n of [2, 7, 50]) {
+    const ctx = createBatchContext(createRng(1), 'normal')
+    ctx.chatCount = n
+    const fields = GENERATORS.ticket(ctx)
+    const bubbles = (value(fields, 'Conversation').match(/class="bubble"/g) || []).length
+    assert.equal(bubbles, n)
+    assert.equal(Number(value(fields, 'Messages')), n)
+  }
+})
+
 test('parent full names never repeat within a batch', () => {
   const fulls = runBatch('parent', 300, { len: 'normal' }).map((f) => value(f, 'Full name').toLowerCase())
   assert.equal(new Set(fulls).size, fulls.length)

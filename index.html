@@ -49,6 +49,14 @@
               <button data-step="1" aria-label="increase">+</button>
             </div>
           </div>
+          <div class="field ticket-only" hidden>
+            <label for="msgCount">Messages</label>
+            <div class="stepper">
+              <button data-step="-1" aria-label="decrease">−</button>
+              <input type="number" id="msgCount" value="20" min="2" max="200" />
+              <button data-step="1" aria-label="increase">+</button>
+            </div>
+          </div>
           <div class="field data-only">
             <label for="len">Text length</label>
             <select id="len">

@@ -24,6 +24,7 @@ const lenEl = $('len')
 const seedEl = $('seed')
 const fileTypeEl = $('fileType')
 const fileSizeEl = $('fileSize')
+const msgCountEl = $('msgCount')
 
 let currentType = 'parent'
 let currentCtx = null
@@ -129,11 +130,13 @@ function renderManifest() {
     return
   }
   const { seeded, value } = readSeed()
+  const countLabel = currentType === TICKET_TYPE ? 'messages' : 'count'
+  const countValue = currentType === TICKET_TYPE ? String(currentCtx?.chatCount ?? clampMsgCount()) : String(lastCards.length)
   el.innerHTML =
     seg('type', TYPE_LABELS[currentType] || currentType) +
     seg('seed', seeded ? String(value) : 'random', seeded) +
     seg('source', dataSource) +
-    seg('count', String(lastCards.length), true) +
+    seg(countLabel, countValue, true) +
     seg('dates', 'dd/mm/yyyy')
 }
 
@@ -145,9 +148,17 @@ function generate() {
   const len = lenEl.value
   const count = currentType === TICKET_TYPE ? 1 : clampCount() // a ticket is one conversation
   currentCtx = getContext(len)
+  if (currentType === TICKET_TYPE) currentCtx.chatCount = clampMsgCount()
   lastCards = Array.from({ length: count }, () => GENERATORS[currentType](currentCtx))
   renderCards()
   renderManifest()
+}
+
+function clampMsgCount() {
+  const n = Math.floor(Number(msgCountEl.value) || 20)
+  const clamped = Math.min(200, Math.max(2, n))
+  msgCountEl.value = String(clamped)
+  return clamped
 }
 
 function clampFileSize() {
@@ -298,8 +309,12 @@ function applyModeVisibility() {
   document.querySelectorAll('.files-only').forEach((el) => {
     el.hidden = !filesMode
   })
-  $('countField').hidden = currentType === TICKET_TYPE // a ticket is always a single conversation
-  cardsEl.classList.toggle('cards-single', currentType === TICKET_TYPE)
+  const ticketMode = currentType === TICKET_TYPE
+  document.querySelectorAll('.ticket-only').forEach((el) => {
+    el.hidden = !ticketMode
+  })
+  $('countField').hidden = ticketMode // a ticket is always a single conversation; pick message count instead
+  cardsEl.classList.toggle('cards-single', ticketMode)
 }
 
 function selectTab(tab) {
@@ -314,14 +329,16 @@ function wireEvents() {
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => selectTab(t)))
   document.querySelectorAll('.stepper button').forEach((b) =>
     b.addEventListener('click', () => {
-      countEl.value = String(Math.max(1, (Number(countEl.value) || 1) + Number(b.dataset.step)))
+      const input = b.parentElement.querySelector('input')
+      const min = Number(input.min) || 1
+      input.value = String(Math.max(min, (Number(input.value) || min) + Number(b.dataset.step)))
     }),
   )
   lenEl.addEventListener('change', generate)
   fileTypeEl.addEventListener('change', generate)
   fileSizeEl.addEventListener('change', generate)
   $('run').addEventListener('click', generate)
-  ;[countEl, seedEl, fileSizeEl].forEach((el) =>
+  ;[countEl, seedEl, fileSizeEl, msgCountEl].forEach((el) =>
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') generate()
     }),

@@ -222,7 +222,7 @@ function ticket(ctx) {
   const { rng } = ctx
   const a = ctx.nameGen.next(rng.pick(GENDERS), 'normal')
   const b = ctx.nameGen.next(rng.pick(GENDERS), 'normal')
-  const chat = chatThread(rng, ctx.len, a.first, b.first)
+  const chat = chatThread(rng, ctx.len, ctx.chatCount ?? 20, a.first, b.first)
   return [
     ['Participant A', a.full],
     ['Participant B', b.full],

@@ -78,32 +78,34 @@ export function richMessage(rng, len) {
 }
 
 // --- Chat / conversation transcript -----------------------------------------
-// Two parties replying back and forth. Text length controls how many alternating
-// turns; each turn is a burst of 1–3 consecutive messages, each of varying length.
-const CHAT_TURNS = { normal: [6, 9], long: [14, 22], stress: [30, 48] }
-
-function chatLine(rng) {
+// Two parties replying back and forth for an exact number of messages. The sides
+// alternate in bursts of 1–3 consecutive bubbles; Text length sets how wordy each
+// message is.
+function chatLine(rng, len) {
   const r = rng.rnd()
-  if (r < 0.4) return cap(words(rng, rng.randInt(2, 6))) // short, chatty — no period
-  if (r < 0.8) return sentence(rng, 6, 12) // one sentence
-  return paras(rng, 2, 8, 14) // two sentences
+  if (len === 'stress') return r < 0.3 ? sentence(rng, 8, 14) : paras(rng, rng.randInt(2, 4), 10, 18)
+  if (len === 'long') return r < 0.35 ? sentence(rng, 6, 12) : paras(rng, 2, 8, 14)
+  if (r < 0.45) return cap(words(rng, rng.randInt(2, 6))) // short, chatty — no period
+  if (r < 0.85) return sentence(rng, 6, 12)
+  return paras(rng, 2, 8, 14)
 }
 
-export function chatThread(rng, len, whoA, whoB) {
-  const [lo, hi] = CHAT_TURNS[len] || CHAT_TURNS.normal
-  const turns = rng.randInt(lo, hi)
+export function chatThread(rng, len, total, whoA, whoB) {
   const parts = []
   let count = 0
-  for (let t = 0; t < turns; t++) {
-    const fromA = t % 2 === 0
+  let turn = 0
+  while (count < total) {
+    const fromA = turn % 2 === 0
     const who = fromA ? whoA : whoB
     const dir = fromA ? 'in' : 'out'
+    const burst = Math.min(rng.randInt(1, 3), total - count)
     const bubbles = []
-    for (let m = rng.randInt(1, 3); m > 0; m--) {
-      bubbles.push(`<div class="bubble" title="click to copy">${chatLine(rng)}</div>`)
+    for (let m = 0; m < burst; m++) {
+      bubbles.push(`<div class="bubble" title="click to copy">${chatLine(rng, len)}</div>`)
       count++
     }
     parts.push(`<div class="msg msg-${dir}"><div class="msg-who">${who}</div>${bubbles.join('')}</div>`)
+    turn++
   }
   return { html: parts.join('\n'), count }
 }
