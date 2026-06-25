@@ -1,6 +1,6 @@
 :root {
-  --mono: 'Google Sans Code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  --ui: 'Google Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --ui: 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --paper-accent: #a6620a; /* preview is always light "paper" — fixed dark accent in both themes */
 }
 
