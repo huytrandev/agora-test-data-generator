@@ -29,6 +29,7 @@ let currentCtx = null
 let lastCards = []
 let lastFiles = []
 let sessionCtx = null
+let dataSource = 'loading…'
 
 const escapeHtml = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -108,6 +109,29 @@ function renderCards() {
   renderCardList(lastCards, 'card', cardMarkup)
 }
 
+// The "manifest" status line — makes the run's provenance (seed, source, count) legible.
+const seg = (k, v, hi) => `<span class="seg"><span class="seg-k">${k}</span> <span class="seg-v${hi ? ' hi' : ''}">${escapeHtml(v)}</span></span>`
+
+function renderManifest() {
+  const el = $('manifest')
+  if (!el) return
+  if (currentType === FILES_TYPE) {
+    el.innerHTML =
+      seg('type', TYPE_LABELS[FILES_TYPE] || 'Files') +
+      seg('format', (fileTypeEl.value || 'png').toUpperCase(), true) +
+      seg('size', fileSizeEl.value) +
+      seg('count', String(lastFiles.length), true)
+    return
+  }
+  const { seeded, value } = readSeed()
+  el.innerHTML =
+    seg('type', TYPE_LABELS[currentType] || currentType) +
+    seg('seed', seeded ? String(value) : 'random', seeded) +
+    seg('source', dataSource) +
+    seg('count', String(lastCards.length), true) +
+    seg('dates', 'dd/mm/yyyy')
+}
+
 function generate() {
   if (currentType === FILES_TYPE) {
     generateFilesFlow()
@@ -118,6 +142,7 @@ function generate() {
   currentCtx = getContext(len)
   lastCards = Array.from({ length: count }, () => GENERATORS[currentType](currentCtx))
   renderCards()
+  renderManifest()
 }
 
 function clampFileSize() {
@@ -148,6 +173,7 @@ function generateFilesFlow() {
   try {
     lastFiles = generateFiles(typeKey, target, count)
     renderFileCards()
+    renderManifest()
   } catch (error) {
     console.warn('File generation failed.', error)
     cardsEl.innerHTML = '<div class="placeholder">File generation failed — see console.</div>'
@@ -288,13 +314,29 @@ function wireEvents() {
   $('exportCsv').addEventListener('click', () => exportBatch('csv'))
   $('downloadAll').addEventListener('click', downloadAllFiles)
   cardsEl.addEventListener('click', handleCardClick)
+
+  // Keyboard: press 1–8 to switch record type (ignored while typing in a field).
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return
+    if (e.target.closest('input, select, textarea')) return
+    if (e.key >= '1' && e.key <= '9') {
+      const tabs = document.querySelectorAll('.tab')
+      const tab = tabs[Number(e.key) - 1]
+      if (tab) {
+        e.preventDefault()
+        selectTab(tab)
+      }
+    }
+  })
 }
 
 async function initFaker() {
   const pill = $('fakerPill')
   const { ok } = await loadFaker()
-  pill.textContent = ok ? 'data source: Faker (rich)' : 'data source: offline pool'
+  dataSource = ok ? 'faker' : 'offline'
+  pill.textContent = ok ? 'source: faker (rich)' : 'source: offline pool'
   pill.classList.add(ok ? 'ok' : 'warn')
+  renderManifest()
   // Re-seed Faker if the user already entered a seed before it finished loading.
   const { seeded, value } = readSeed()
   if (seeded) seedFaker(value)

@@ -15,98 +15,96 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <h1>Agora<span class="amp"> · </span>Test Data</h1>
-        <span class="tag">form fill · ui stress · no duplicates</span>
-        <div class="header-right">
-          <span class="pill" id="fakerPill" title="Source of varied lorem text">data source: loading…</span>
-          <button class="theme-toggle" id="themeToggle" title="Toggle light / dark">☀ Light</button>
-        </div>
+  <div class="app">
+    <aside class="rail">
+      <div class="wordmark">
+        <span class="mark">Agora<span class="dot">·</span></span>
+        <span class="mark-sub">Test Data Generator</span>
       </div>
-      <p>
-        Generate realistic, <b>non-duplicating</b> values to paste into Agora forms — and stress-test how the UI handles
-        long / rich text. Pick a type, set how many, hit Generate, then <b>click any value to copy it</b>.
-        Runs entirely in the browser.
+      <nav class="tabs" id="tabs" aria-label="Record type">
+        <button class="tab active" data-type="parent"><span class="k">1</span><span class="t">Parent</span></button>
+        <button class="tab" data-type="student"><span class="k">2</span><span class="t">Student / Child</span></button>
+        <button class="tab" data-type="course"><span class="k">3</span><span class="t">Course</span></button>
+        <button class="tab" data-type="instance"><span class="k">4</span><span class="t">Course Instance</span></button>
+        <button class="tab" data-type="class"><span class="k">5</span><span class="t">Class</span></button>
+        <button class="tab" data-type="product"><span class="k">6</span><span class="t">Product</span></button>
+        <button class="tab" data-type="message"><span class="k">7</span><span class="t">Update Message</span></button>
+        <button class="tab" data-type="files"><span class="k">8</span><span class="t">Files</span></button>
+      </nav>
+      <div class="rail-foot">
+        <span class="pill" id="fakerPill" title="Source of varied lorem text">source: loading…</span>
+        <button class="theme-toggle" id="themeToggle" title="Toggle light / dark">☀ Light</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="toolbar">
+        <div class="bar">
+          <div class="field">
+            <label for="count">Records</label>
+            <div class="stepper">
+              <button data-step="-1" aria-label="decrease">−</button>
+              <input type="number" id="count" value="3" min="1" max="100" />
+              <button data-step="1" aria-label="increase">+</button>
+            </div>
+          </div>
+          <div class="field data-only">
+            <label for="len">Text length</label>
+            <select id="len">
+              <option value="normal" selected>Normal</option>
+              <option value="long">Long</option>
+              <option value="stress">Stress (overflow)</option>
+            </select>
+          </div>
+          <div class="field data-only">
+            <label for="seed">Seed</label>
+            <input type="text" id="seed" placeholder="random" inputmode="numeric" />
+          </div>
+          <div class="field files-only" hidden>
+            <label for="fileType">File type</label>
+            <select id="fileType">
+              <option value="png" selected>PNG image</option>
+              <option value="jpeg">JPEG image</option>
+              <option value="pdf">PDF</option>
+            </select>
+          </div>
+          <div class="field files-only" hidden>
+            <label for="fileSize">File size</label>
+            <input type="text" id="fileSize" value="1MB" list="sizePresets" />
+            <datalist id="sizePresets">
+              <option value="100KB"></option>
+              <option value="500KB"></option>
+              <option value="1MB"></option>
+              <option value="5MB"></option>
+              <option value="10MB"></option>
+            </datalist>
+          </div>
+          <button class="generate" id="run">Generate</button>
+          <div class="spacer"></div>
+          <div class="field data-only">
+            <label>Export batch</label>
+            <div class="export-group">
+              <button class="mini" id="exportJson">JSON</button>
+              <button class="mini" id="exportCsv">CSV</button>
+            </div>
+          </div>
+          <div class="field files-only" hidden>
+            <label>All files</label>
+            <button class="mini" id="downloadAll">Download all</button>
+          </div>
+        </div>
+        <div class="manifest" id="manifest"></div>
+      </div>
+
+      <p class="copyhint">
+        Click any value to copy. <b>Update Message</b> renders a formatted preview — use <b>copy formatted</b> to keep
+        rich text for a WYSIWYG editor. No repeated names within a batch. Dates are <code>dd/mm/yyyy</code>.
       </p>
-    </header>
 
-    <nav class="tabs" id="tabs">
-      <button class="tab active" data-type="parent">Parent</button>
-      <button class="tab" data-type="student">Student / Child</button>
-      <button class="tab" data-type="course">Course</button>
-      <button class="tab" data-type="instance">Course Instance</button>
-      <button class="tab" data-type="class">Class</button>
-      <button class="tab" data-type="product">Product</button>
-      <button class="tab" data-type="message">Update Message</button>
-      <button class="tab" data-type="files">Files</button>
-    </nav>
-
-    <div class="bar">
-      <div class="field">
-        <label for="count">How many</label>
-        <div class="stepper">
-          <button data-step="-1" aria-label="decrease">−</button>
-          <input type="number" id="count" value="3" min="1" max="100" />
-          <button data-step="1" aria-label="increase">+</button>
-        </div>
+      <div class="cards" id="cards">
+        <div class="placeholder">Pick a type and hit Generate.</div>
       </div>
-      <div class="field data-only">
-        <label for="len">Text length</label>
-        <select id="len">
-          <option value="normal" selected>Normal</option>
-          <option value="long">Long</option>
-          <option value="stress">Stress (overflow)</option>
-        </select>
-      </div>
-      <div class="field data-only">
-        <label for="seed">Seed (blank = random)</label>
-        <input type="text" id="seed" placeholder="e.g. 42" inputmode="numeric" />
-      </div>
-      <div class="field files-only" hidden>
-        <label for="fileType">File type</label>
-        <select id="fileType">
-          <option value="png" selected>PNG image</option>
-          <option value="jpeg">JPEG image</option>
-          <option value="pdf">PDF</option>
-        </select>
-      </div>
-      <div class="field files-only" hidden>
-        <label for="fileSize">File size</label>
-        <input type="text" id="fileSize" value="1MB" list="sizePresets" />
-        <datalist id="sizePresets">
-          <option value="100KB"></option>
-          <option value="500KB"></option>
-          <option value="1MB"></option>
-          <option value="5MB"></option>
-          <option value="10MB"></option>
-        </datalist>
-      </div>
-      <button class="generate" id="run">▶ Generate</button>
-      <div class="spacer"></div>
-      <div class="field data-only">
-        <label>Export batch</label>
-        <div class="export-group">
-          <button class="mini" id="exportJson">JSON</button>
-          <button class="mini" id="exportCsv">CSV</button>
-        </div>
-      </div>
-      <div class="field files-only" hidden>
-        <label>All files</label>
-        <button class="mini" id="downloadAll">Download all</button>
-      </div>
-    </div>
-
-    <p class="copyhint">
-      💡 Click a value to copy it. <b>Message</b> renders as a formatted preview — use <b>copy formatted</b> to keep rich
-      formatting for a WYSIWYG editor. Each Generate guarantees <b>no repeated names</b> within the batch (and across the
-      session when unseeded). Dates are <code>dd/mm/yyyy</code>; emails use <code>@mailinator.com</code>.
-    </p>
-
-    <div class="cards" id="cards">
-      <div class="placeholder">Pick a type and hit Generate.</div>
-    </div>
+    </main>
   </div>
 
   <script type="module" src="js/main.js"></script>
