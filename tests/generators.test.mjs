@@ -77,12 +77,12 @@ test('message marks its body as html', () => {
   assert.match(body[1], /<p>|<h4>/)
 })
 
-test('ticket exposes a chat conversation marked as html', () => {
+test('ticket exposes a chat conversation marked as chat', () => {
   const [fields] = runBatch('ticket', 1)
   const labels = fields.map(([l]) => l)
   assert.deepEqual(labels, ['Participant A', 'Participant B', 'Messages', 'Conversation'])
   const convo = fields.find(([l]) => l === 'Conversation')
-  assert.equal(convo[2], 'html')
+  assert.equal(convo[2], 'chat')
   assert.match(convo[1], /msg-in|msg-out/)
   assert.match(convo[1], /class="bubble"/)
 })

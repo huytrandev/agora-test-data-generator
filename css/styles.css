@@ -272,11 +272,14 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .preview .msg-out { margin-left: auto; align-items: flex-end; }
 .preview .msg-who { font-family: var(--ui); font-size: 11px; color: #6b7280; margin: 0 4px 4px; }
 .preview .bubble {
-  font-family: var(--ui); font-size: 13px; line-height: 1.45;
+  font-family: var(--ui); font-size: 13px; line-height: 1.45; cursor: pointer;
   padding: 8px 12px; margin-top: 4px; border-radius: 13px; border-bottom-left-radius: 4px;
-  background: #e9ebef; color: #14181e;
+  background: #e9ebef; color: #14181e; transition: filter 0.1s, box-shadow 0.1s;
 }
+.preview .bubble:hover { filter: brightness(0.96); }
 .preview .msg-out .bubble { background: var(--paper-accent); color: #fff; border-bottom-left-radius: 13px; border-bottom-right-radius: 4px; }
+.preview .msg-out .bubble:hover { filter: brightness(1.08); }
+.preview .bubble.copied { box-shadow: 0 0 0 2px var(--paper-accent); }
 /* Long chat transcripts scroll inside the card instead of stretching it. */
 .preview:has(.msg) { max-height: 460px; overflow-y: auto; overscroll-behavior: contain; }
 .preview:has(.msg)::-webkit-scrollbar { width: 8px; }

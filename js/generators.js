@@ -2,7 +2,7 @@
 // values unique within a run. Pure module (Date is fine; no DOM).
 
 import * as P from './data.js'
-import { HTML_KIND, AVATAR_KIND } from './constants.js'
+import { HTML_KIND, AVATAR_KIND, CHAT_KIND } from './constants.js'
 import { createNameGenerator, chineseName } from './names.js'
 import { cap, words, sentence, paras, descText, titleText, richMessage, chatThread } from './text.js'
 
@@ -227,7 +227,7 @@ function ticket(ctx) {
     ['Participant A', a.full],
     ['Participant B', b.full],
     ['Messages', String(chat.count)],
-    ['Conversation', chat.html, HTML_KIND],
+    ['Conversation', chat.html, CHAT_KIND],
   ]
 }
 

@@ -100,7 +100,7 @@ export function chatThread(rng, len, whoA, whoB) {
     const dir = fromA ? 'in' : 'out'
     const bubbles = []
     for (let m = rng.randInt(1, 3); m > 0; m--) {
-      bubbles.push(`<div class="bubble">${chatLine(rng)}</div>`)
+      bubbles.push(`<div class="bubble" title="click to copy">${chatLine(rng)}</div>`)
       count++
     }
     parts.push(`<div class="msg msg-${dir}"><div class="msg-who">${who}</div>${bubbles.join('')}</div>`)

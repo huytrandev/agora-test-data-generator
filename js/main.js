@@ -1,5 +1,5 @@
 import { createRng } from './rng.js'
-import { HTML_KIND, AVATAR_KIND } from './constants.js'
+import { HTML_KIND, AVATAR_KIND, CHAT_KIND } from './constants.js'
 import { GENERATORS, TYPE_LABELS, createBatchContext } from './generators.js'
 import { loadFaker, seedFaker } from './faker.js'
 import { generateFiles, FILE_TYPES, dataUrlToBytes } from './files.js'
@@ -69,6 +69,10 @@ function rowsMarkup(fields) {
         // * value is rich HTML produced only by text.js (no user input) — rendered intentionally for WYSIWYG preview.
         return `<div class="preview-lbl">${label} <button class="mini copy-rich">✧ copy formatted</button></div>` +
           `<div class="preview">${value}</div>`
+      }
+      if (kind === CHAT_KIND) {
+        // Chat transcript — bubbles only; each bubble is individually click-to-copy (see handleCardClick).
+        return `<div class="preview-lbl">${label}</div><div class="preview chat">${value}</div>`
       }
       if (kind === AVATAR_KIND) {
         // src is a self-generated data: URL (base64, no HTML-special chars) — safe in the attribute.
@@ -222,6 +226,15 @@ function handleCardClick(e) {
     return
   }
   if (currentType === FILES_TYPE) return // file cards have no data-card actions
+
+  const bubble = e.target.closest('.bubble')
+  if (bubble) {
+    void copyText(bubble.textContent)
+    bubble.classList.add('copied')
+    setTimeout(() => bubble.classList.remove('copied'), 900)
+    toast('Message copied')
+    return
+  }
 
   const fields = lastCards[Number(card.dataset.index)]
 

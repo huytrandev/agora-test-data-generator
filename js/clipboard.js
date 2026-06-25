@@ -1,6 +1,6 @@
 // Clipboard + export helpers. Browser-only (uses Clipboard API / DOM).
 
-import { HTML_KIND, AVATAR_KIND } from './constants.js'
+import { HTML_KIND, AVATAR_KIND, CHAT_KIND } from './constants.js'
 
 export function stripTags(html) {
   // DOMParser never executes scripts and avoids touching the live DOM.
@@ -8,7 +8,7 @@ export function stripTags(html) {
 }
 
 function plainValue([, val, kind]) {
-  return kind === HTML_KIND ? stripTags(val) : val
+  return kind === HTML_KIND || kind === CHAT_KIND ? stripTags(val) : val
 }
 
 // Avatars are images, not pasteable text — exclude them from text/JSON/CSV export.
