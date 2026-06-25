@@ -80,7 +80,7 @@ export function richMessage(rng, len) {
 // --- Chat / conversation transcript -----------------------------------------
 // Two parties replying back and forth. Text length controls how many alternating
 // turns; each turn is a burst of 1–3 consecutive messages, each of varying length.
-const CHAT_TURNS = { normal: [2, 3], long: [4, 6], stress: [8, 14] }
+const CHAT_TURNS = { normal: [6, 9], long: [14, 22], stress: [30, 48] }
 
 function chatLine(rng) {
   const r = rng.rnd()
