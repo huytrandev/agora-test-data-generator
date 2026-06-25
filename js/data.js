@@ -68,7 +68,6 @@ export const PROGRAMMES = [
   'Speech & Drama', 'Robotics Builders', 'Creative Writing Lab', 'Chinese Immersion',
   'Phonics Foundations', 'Chess Academy', 'Financial Literacy', 'Mental Sums',
 ]
-export const CLASS_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 // --- Course / product vocabulary ---
 export const SUBJECTS = [

@@ -77,15 +77,9 @@ function productName(ctx) {
 }
 
 // --- class field helpers ---
-function classTime(rng) {
-  const hour = rng.randInt(9, 18)
-  const h12 = ((hour + 11) % 12) + 1
-  return `${h12}:00${hour < 12 ? 'am' : 'pm'}`
-}
-
 function className(ctx) {
   return ctx.unique('className', () => {
-    const base = `${ctx.rng.pick(P.GRADES)} ${ctx.rng.pick(P.SUBJECTS)} · ${ctx.rng.pick(P.CLASS_DAYS)} ${classTime(ctx.rng)}`
+    const base = `${ctx.rng.pick(P.GRADES)} ${ctx.rng.pick(P.SUBJECTS)}`
     if (ctx.len === 'normal') return base
     if (ctx.len === 'long') return `${base} (${cap(words(ctx.rng, ctx.rng.randInt(3, 5)))})`
     return `${base} (${cap(words(ctx.rng, ctx.rng.randInt(9, 14)))})`

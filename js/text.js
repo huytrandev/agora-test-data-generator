@@ -17,9 +17,6 @@ let provider = fallbackProvider
 export function setWordProvider(next) {
   provider = next
 }
-export function resetWordProvider() {
-  provider = fallbackProvider
-}
 
 export const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
