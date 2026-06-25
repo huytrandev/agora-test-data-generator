@@ -1,0 +1,10 @@
+{
+  "name": "agora-test-data-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static browser tool that generates realistic, non-duplicating dummy data for testing Agora forms.",
+  "scripts": {
+    "test": "node --test tests/"
+  }
+}

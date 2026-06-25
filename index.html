@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agora · Test Data Generator</title>
+  <script>
+    // Apply the saved theme before paint to avoid a flash of the wrong palette.
+    try { document.documentElement.dataset.theme = localStorage.getItem('tdg-theme') || 'dark' }
+    catch { document.documentElement.dataset.theme = 'dark' } // localStorage blocked (private mode) — default to dark
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Agora<span class="amp"> · </span>Test Data</h1>
+        <span class="tag">form fill · ui stress · no duplicates</span>
+        <div class="header-right">
+          <span class="pill" id="fakerPill" title="Source of varied lorem text">data source: loading…</span>
+          <button class="theme-toggle" id="themeToggle" title="Toggle light / dark">☀ Light</button>
+        </div>
+      </div>
+      <p>
+        Generate realistic, <b>non-duplicating</b> values to paste into Agora forms — and stress-test how the UI handles
+        long / rich text. Pick a type, set how many, hit Generate, then <b>click any value to copy it</b>.
+        Runs entirely in the browser.
+      </p>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-type="parent">Parent</button>
+      <button class="tab" data-type="student">Student / Child</button>
+      <button class="tab" data-type="course">Course</button>
+      <button class="tab" data-type="instance">Course Instance</button>
+      <button class="tab" data-type="class">Class</button>
+      <button class="tab" data-type="product">Product</button>
+      <button class="tab" data-type="message">Update Message</button>
+      <button class="tab" data-type="files">Files</button>
+    </nav>
+
+    <div class="bar">
+      <div class="field">
+        <label for="count">How many</label>
+        <div class="stepper">
+          <button data-step="-1" aria-label="decrease">−</button>
+          <input type="number" id="count" value="3" min="1" max="100" />
+          <button data-step="1" aria-label="increase">+</button>
+        </div>
+      </div>
+      <div class="field data-only">
+        <label for="len">Text length</label>
+        <select id="len">
+          <option value="normal" selected>Normal</option>
+          <option value="long">Long</option>
+          <option value="stress">Stress (overflow)</option>
+        </select>
+      </div>
+      <div class="field data-only">
+        <label for="seed">Seed (blank = random)</label>
+        <input type="text" id="seed" placeholder="e.g. 42" inputmode="numeric" />
+      </div>
+      <div class="field files-only" hidden>
+        <label for="fileType">File type</label>
+        <select id="fileType">
+          <option value="png" selected>PNG image</option>
+          <option value="jpeg">JPEG image</option>
+          <option value="pdf">PDF</option>
+        </select>
+      </div>
+      <div class="field files-only" hidden>
+        <label for="fileSize">File size</label>
+        <input type="text" id="fileSize" value="1MB" list="sizePresets" />
+        <datalist id="sizePresets">
+          <option value="100KB"></option>
+          <option value="500KB"></option>
+          <option value="1MB"></option>
+          <option value="5MB"></option>
+          <option value="10MB"></option>
+        </datalist>
+      </div>
+      <button class="generate" id="run">▶ Generate</button>
+      <div class="spacer"></div>
+      <div class="field data-only">
+        <label>Export batch</label>
+        <div class="export-group">
+          <button class="mini" id="exportJson">JSON</button>
+          <button class="mini" id="exportCsv">CSV</button>
+        </div>
+      </div>
+      <div class="field files-only" hidden>
+        <label>All files</label>
+        <button class="mini" id="downloadAll">Download all</button>
+      </div>
+    </div>
+
+    <p class="copyhint">
+      💡 Click a value to copy it. <b>Message</b> renders as a formatted preview — use <b>copy formatted</b> to keep rich
+      formatting for a WYSIWYG editor. Each Generate guarantees <b>no repeated names</b> within the batch (and across the
+      session when unseeded). Dates are <code>dd/mm/yyyy</code>; emails use <code>@mailinator.com</code>.
+    </p>
+
+    <div class="cards" id="cards">
+      <div class="placeholder">Pick a type and hit Generate.</div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

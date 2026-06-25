@@ -1,0 +1,10 @@
+# Static site — no build step. Deploy this folder directly to Netlify:
+#   - drag & drop the folder in the Netlify dashboard, or
+#   - run `netlify deploy --dir=. --prod` from this directory.
+[build]
+  publish = "."
+  command = ""
+
+# `tests/` and tooling files are never served, but exclude them from the bundle anyway.
+[build.processing]
+  skip_processing = true

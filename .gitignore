@@ -1,0 +1,12 @@
+# Dependencies (Faker is loaded via CDN; nothing is installed for runtime).
+node_modules/
+
+# Netlify CLI artefacts (created by `netlify deploy`).
+.netlify/
+
+# Build output, if a standalone bundle is ever generated.
+dist/
+
+# OS / editor cruft.
+.DS_Store
+*.log

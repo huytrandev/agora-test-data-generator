@@ -1,0 +1,327 @@
+import { createRng } from './rng.js'
+import { HTML_KIND, AVATAR_KIND } from './constants.js'
+import { GENERATORS, TYPE_LABELS, createBatchContext } from './generators.js'
+import { loadFaker, seedFaker } from './faker.js'
+import { generateFiles, FILE_TYPES, dataUrlToBytes } from './files.js'
+import { avatarDataUrl } from './avatar.js'
+import { parseSize, formatSize } from './file-format.js'
+import {
+  copyText, copyRich, fieldsToText, fieldsToObject, stripTags, downloadBlob, downloadJson, downloadCsv,
+} from './clipboard.js'
+
+const MAX_COUNT = 100
+const CARD_ANIM_STEP_MS = 35
+const FILES_TYPE = 'files'
+const MIN_FILE_SIZE = 1024
+const MAX_FILE_SIZE = 25 * 1024 * 1024
+const DEFAULT_FILE_SIZE = 1024 * 1024
+
+const $ = (id) => document.getElementById(id)
+const cardsEl = $('cards')
+const countEl = $('count')
+const lenEl = $('len')
+const seedEl = $('seed')
+const fileTypeEl = $('fileType')
+const fileSizeEl = $('fileSize')
+
+let currentType = 'parent'
+let currentCtx = null
+let lastCards = []
+let lastFiles = []
+let sessionCtx = null
+
+const escapeHtml = (s) =>
+  String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+function readSeed() {
+  const raw = seedEl.value.trim()
+  if (raw === '' || Number.isNaN(Number(raw))) return { seeded: false, value: null }
+  return { seeded: true, value: Number(raw) >>> 0 }
+}
+
+// Seeded runs build a fresh, reproducible context each time. Unseeded runs reuse
+// one session context so names never repeat across consecutive Generates.
+function getContext(len) {
+  const { seeded, value } = readSeed()
+  if (seeded) {
+    seedFaker(value)
+    return createBatchContext(createRng(value), len)
+  }
+  if (!sessionCtx) sessionCtx = createBatchContext(createRng(''), len)
+  sessionCtx.len = len
+  return sessionCtx
+}
+
+function clampCount() {
+  const n = Math.floor(Number(countEl.value) || 1)
+  const clamped = Math.min(MAX_COUNT, Math.max(1, n))
+  countEl.value = String(clamped)
+  return clamped
+}
+
+const avatarSlug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+
+function rowsMarkup(fields) {
+  return fields
+    .map(([label, value, kind]) => {
+      if (kind === HTML_KIND) {
+        // * value is rich HTML produced only by text.js (no user input) — rendered intentionally for WYSIWYG preview.
+        return `<div class="preview-lbl">${label} <button class="mini copy-rich">✧ copy formatted</button></div>` +
+          `<div class="preview">${value}</div>`
+      }
+      if (kind === AVATAR_KIND) {
+        // src is a self-generated data: URL (base64, no HTML-special chars) — safe in the attribute.
+        return `<div class="row"><span class="lbl">${escapeHtml(label)}</span>` +
+          `<div class="avatar-wrap"><img class="avatar-img" alt="avatar" src="${escapeHtml(avatarDataUrl(value))}" />` +
+          `<button class="mini avatar-dl" data-file="agora-avatar-${escapeHtml(avatarSlug(value))}.png">download</button></div></div>`
+      }
+      return `<div class="row"><span class="lbl">${escapeHtml(label)}</span>` +
+        `<button class="val" title="click to copy">${escapeHtml(value)}</button></div>`
+    })
+    .join('')
+}
+
+function cardMarkup(fields, index) {
+  return (
+    `<div class="card-head"><span class="card-type">${TYPE_LABELS[currentType]} #${index + 1}</span>` +
+    '<div class="card-actions">' +
+    '<button class="mini act-json">json</button>' +
+    '<button class="mini act-regen" title="regenerate this card">↻</button>' +
+    '<button class="mini act-all">copy all</button>' +
+    `</div></div><div class="rows">${rowsMarkup(fields)}</div>`
+  )
+}
+
+function renderCardList(items, className, markup) {
+  cardsEl.innerHTML = ''
+  items.forEach((item, i) => {
+    const card = document.createElement('div')
+    card.className = className
+    card.dataset.index = String(i)
+    card.style.animationDelay = `${i * CARD_ANIM_STEP_MS}ms`
+    card.innerHTML = markup(item, i)
+    cardsEl.appendChild(card)
+  })
+}
+
+function renderCards() {
+  renderCardList(lastCards, 'card', cardMarkup)
+}
+
+function generate() {
+  if (currentType === FILES_TYPE) {
+    generateFilesFlow()
+    return
+  }
+  const len = lenEl.value
+  const count = clampCount()
+  currentCtx = getContext(len)
+  lastCards = Array.from({ length: count }, () => GENERATORS[currentType](currentCtx))
+  renderCards()
+}
+
+function clampFileSize() {
+  const parsed = parseSize(fileSizeEl.value)
+  const target = parsed ?? DEFAULT_FILE_SIZE
+  return Math.min(MAX_FILE_SIZE, Math.max(MIN_FILE_SIZE, target))
+}
+
+function fileCardMarkup(file, index) {
+  const meta = `${file.mime} · ${formatSize(file.sizeBytes)}`
+  return (
+    `<div class="card-head"><span class="card-type">File #${index + 1} · ${file.typeLabel}</span>` +
+    '<div class="card-actions"><button class="mini file-dl">download</button></div></div>' +
+    `<div class="file-meta"><div class="file-icon">${file.typeLabel}</div>` +
+    `<div class="file-info"><div class="file-name">${escapeHtml(file.name)}</div>` +
+    `<div class="file-sub">${escapeHtml(meta)}</div></div></div>`
+  )
+}
+
+function renderFileCards() {
+  renderCardList(lastFiles, 'card file-card', fileCardMarkup)
+}
+
+function generateFilesFlow() {
+  const count = clampCount()
+  const typeKey = fileTypeEl.value in FILE_TYPES ? fileTypeEl.value : 'png'
+  const target = clampFileSize()
+  try {
+    lastFiles = generateFiles(typeKey, target, count)
+    renderFileCards()
+  } catch (error) {
+    console.warn('File generation failed.', error)
+    cardsEl.innerHTML = '<div class="placeholder">File generation failed — see console.</div>'
+  }
+}
+
+function flash(btn, text) {
+  const original = btn.textContent
+  btn.textContent = text
+  btn.classList.add('ok')
+  setTimeout(() => {
+    btn.textContent = original
+    btn.classList.remove('ok')
+  }, 1200)
+}
+
+let toastTimer = null
+function toast(message) {
+  let el = document.querySelector('.toast')
+  if (!el) {
+    el = document.createElement('div')
+    el.className = 'toast'
+    document.body.appendChild(el)
+  }
+  el.textContent = message
+  el.classList.add('show')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1600)
+}
+
+function handleCardClick(e) {
+  const card = e.target.closest('.card')
+  if (!card) return
+
+  const dl = e.target.closest('.file-dl')
+  if (dl) {
+    const file = lastFiles[Number(card.dataset.index)]
+    if (file) downloadBlob(file.name, file.blob)
+    return
+  }
+
+  const av = e.target.closest('.avatar-dl')
+  if (av) {
+    const img = av.closest('.avatar-wrap')?.querySelector('.avatar-img')
+    if (img) downloadBlob(av.dataset.file || 'agora-avatar.png', new Blob([dataUrlToBytes(img.src)], { type: 'image/png' }))
+    return
+  }
+  if (currentType === FILES_TYPE) return // file cards have no data-card actions
+
+  const fields = lastCards[Number(card.dataset.index)]
+
+  const rich = e.target.closest('.copy-rich')
+  if (rich) {
+    void copyRich(rich.closest('.preview-lbl').nextElementSibling)
+    flash(rich, '✓ copied')
+    return
+  }
+  if (e.target.closest('.act-regen')) {
+    const index = Number(card.dataset.index)
+    lastCards[index] = GENERATORS[currentType](currentCtx)
+    card.innerHTML = cardMarkup(lastCards[index], index)
+    return
+  }
+  const jsonBtn = e.target.closest('.act-json')
+  if (jsonBtn) {
+    void copyText(JSON.stringify(fieldsToObject(fields), null, 2))
+    flash(jsonBtn, '✓ copied')
+    return
+  }
+  const allBtn = e.target.closest('.act-all')
+  if (allBtn) {
+    void copyText(fieldsToText(fields))
+    flash(allBtn, '✓ copied')
+    return
+  }
+  const val = e.target.closest('.val')
+  if (val) {
+    void copyText(val.textContent)
+    flash(val, '✓ copied')
+  }
+}
+
+function exportBatch(kind) {
+  if (lastCards.length === 0) {
+    toast('Generate a batch first')
+    return
+  }
+  const filename = `agora-${currentType}-${lastCards.length}.${kind}`
+  if (kind === 'json') downloadJson(filename, lastCards)
+  else downloadCsv(filename, lastCards)
+  toast(`Downloaded ${filename}`)
+}
+
+function downloadAllFiles() {
+  if (lastFiles.length === 0) {
+    toast('Generate files first')
+    return
+  }
+  lastFiles.forEach((file, i) => setTimeout(() => downloadBlob(file.name, file.blob), i * 150))
+  toast(`Downloading ${lastFiles.length} file(s)`)
+}
+
+function applyModeVisibility() {
+  const filesMode = currentType === FILES_TYPE
+  document.querySelectorAll('.data-only').forEach((el) => {
+    el.hidden = filesMode
+  })
+  document.querySelectorAll('.files-only').forEach((el) => {
+    el.hidden = !filesMode
+  })
+}
+
+function selectTab(tab) {
+  document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'))
+  tab.classList.add('active')
+  currentType = tab.dataset.type
+  applyModeVisibility()
+  generate()
+}
+
+function wireEvents() {
+  document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => selectTab(t)))
+  document.querySelectorAll('.stepper button').forEach((b) =>
+    b.addEventListener('click', () => {
+      countEl.value = String(Math.max(1, (Number(countEl.value) || 1) + Number(b.dataset.step)))
+    }),
+  )
+  lenEl.addEventListener('change', generate)
+  fileTypeEl.addEventListener('change', generate)
+  fileSizeEl.addEventListener('change', generate)
+  $('run').addEventListener('click', generate)
+  ;[countEl, seedEl, fileSizeEl].forEach((el) =>
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generate()
+    }),
+  )
+  $('exportJson').addEventListener('click', () => exportBatch('json'))
+  $('exportCsv').addEventListener('click', () => exportBatch('csv'))
+  $('downloadAll').addEventListener('click', downloadAllFiles)
+  cardsEl.addEventListener('click', handleCardClick)
+}
+
+async function initFaker() {
+  const pill = $('fakerPill')
+  const { ok } = await loadFaker()
+  pill.textContent = ok ? 'data source: Faker (rich)' : 'data source: offline pool'
+  pill.classList.add(ok ? 'ok' : 'warn')
+  // Re-seed Faker if the user already entered a seed before it finished loading.
+  const { seeded, value } = readSeed()
+  if (seeded) seedFaker(value)
+}
+
+function setupTheme() {
+  const btn = $('themeToggle')
+  const apply = (theme) => {
+    document.documentElement.dataset.theme = theme
+    btn.textContent = theme === 'dark' ? '☀ Light' : '☾ Dark'
+  }
+  apply(document.documentElement.dataset.theme || 'dark')
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
+    try {
+      localStorage.setItem('tdg-theme', next)
+    } catch (error) {
+      console.warn('Theme preference not persisted.', error)
+    }
+    apply(next)
+  })
+}
+
+setupTheme()
+wireEvents()
+applyModeVisibility()
+generate()
+void initFaker()
+
+export { stripTags }
