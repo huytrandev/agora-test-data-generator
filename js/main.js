@@ -12,6 +12,7 @@ import {
 const MAX_COUNT = 100
 const CARD_ANIM_STEP_MS = 35
 const FILES_TYPE = 'files'
+const TICKET_TYPE = 'ticket'
 const MIN_FILE_SIZE = 1024
 const MAX_FILE_SIZE = 25 * 1024 * 1024
 const DEFAULT_FILE_SIZE = 1024 * 1024
@@ -142,7 +143,7 @@ function generate() {
     return
   }
   const len = lenEl.value
-  const count = clampCount()
+  const count = currentType === TICKET_TYPE ? 1 : clampCount() // a ticket is one conversation
   currentCtx = getContext(len)
   lastCards = Array.from({ length: count }, () => GENERATORS[currentType](currentCtx))
   renderCards()
@@ -297,6 +298,8 @@ function applyModeVisibility() {
   document.querySelectorAll('.files-only').forEach((el) => {
     el.hidden = !filesMode
   })
+  $('countField').hidden = currentType === TICKET_TYPE // a ticket is always a single conversation
+  cardsEl.classList.toggle('cards-single', currentType === TICKET_TYPE)
 }
 
 function selectTab(tab) {

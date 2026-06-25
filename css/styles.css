@@ -218,6 +218,8 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 
 /* ---- Cards ---------------------------------------------------------------- */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+/* A ticket is a single conversation — one comfortable reading column. */
+.cards.cards-single { grid-template-columns: minmax(0, 560px); }
 .card {
   background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg);
   overflow: hidden; animation: stamp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -280,10 +282,6 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .preview .msg-out .bubble { background: var(--paper-accent); color: #fff; border-bottom-left-radius: 13px; border-bottom-right-radius: 4px; }
 .preview .msg-out .bubble:hover { filter: brightness(1.08); }
 .preview .bubble.copied { box-shadow: 0 0 0 2px var(--paper-accent); }
-/* Long chat transcripts scroll inside the card instead of stretching it. */
-.preview:has(.msg) { max-height: 460px; overflow-y: auto; overscroll-behavior: contain; }
-.preview:has(.msg)::-webkit-scrollbar { width: 8px; }
-.preview:has(.msg)::-webkit-scrollbar-thumb { background: #cfd4da; border-radius: 8px; }
 
 /* ---- Avatar / File cards -------------------------------------------------- */
 .avatar-wrap { flex: 1; display: flex; align-items: center; gap: 10px; padding: 2px 6px; }
