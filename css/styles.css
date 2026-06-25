@@ -9,15 +9,15 @@
   --rail-w: 232px;
 
   /* Preview is always light "paper" (it simulates a WYSIWYG/email surface). */
-  --paper: #f6f7f9; --paper-text: #14181e; --paper-accent: #0d9488; --paper-border: #e3e7ec;
+  --paper: #f6f7f9; --paper-text: #14181e; --paper-accent: #2563eb; --paper-border: #e3e7ec;
 }
 
 :root[data-theme='dark'] {
   --bg: #0e1116; --panel: #161a21; --panel-2: #1c222b; --code-bg: #11151b;
   --border: #232a34; --border-bright: #313a46;
   --text: #e6eaf0; --muted: #9aa4b2; --faint: #5c6573;
-  --accent: #2dd4bf; --accent-hi: #5eead4; --accent-dim: #1f4f49; --accent-text: #04201c;
-  --accent-ghost: rgba(45, 212, 191, 0.1);
+  --accent: #3b82f6; --accent-hi: #5b9bf8; --accent-dim: #1e3a5f; --accent-text: #ffffff;
+  --accent-ghost: rgba(59, 130, 246, 0.12);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
@@ -25,8 +25,8 @@
   --bg: #f7f8fa; --panel: #ffffff; --panel-2: #f0f2f5; --code-bg: #eef1f4;
   --border: #e3e7ec; --border-bright: #d2d8e0;
   --text: #11161d; --muted: #5a6573; --faint: #97a0ad;
-  --accent: #0d9488; --accent-hi: #0f766e; --accent-dim: #99e6db; --accent-text: #ffffff;
-  --accent-ghost: rgba(13, 148, 136, 0.08);
+  --accent: #2563eb; --accent-hi: #1d4ed8; --accent-dim: #bcd2fb; --accent-text: #ffffff;
+  --accent-ghost: rgba(37, 99, 235, 0.08);
   --shadow: 0 1px 2px rgba(20, 30, 50, 0.06), 0 10px 28px rgba(20, 30, 50, 0.08);
 }
 
